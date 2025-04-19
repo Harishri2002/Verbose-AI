@@ -1,4 +1,3 @@
-```markdown
 # 🗣️ Verbose AI – Professional Text Standardization
 
 **Verbose AI** is a Dart-based utility that uses AI to automatically standardize, correct grammar and spelling, and rewrite casual or broken English into professionally polished text using Google's `gemma-2-2b-it` model via Hugging Face Inference API.
