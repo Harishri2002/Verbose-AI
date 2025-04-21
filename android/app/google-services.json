@@ -1,0 +1,39 @@
+{
+  "project_info": {
+    "project_number": "787211258858",
+    "project_id": "verbose-ai",
+    "storage_bucket": "verbose-ai.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:787211258858:android:15714b71b58e683e15c093",
+        "android_client_info": {
+          "package_name": "com.example.verbose_ai"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "787211258858-7lumd3de7ghlej3c402se1j37degq2ct.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDNgXpid1KpOl6_C7XMLf7EfM2UHeW_fJk"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "787211258858-7lumd3de7ghlej3c402se1j37degq2ct.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

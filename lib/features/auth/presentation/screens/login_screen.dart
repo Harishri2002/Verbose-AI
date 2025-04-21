@@ -3,6 +3,8 @@ import 'package:verbose_ai/config/routes.dart';
 import 'package:verbose_ai/config/theme.dart';
 import 'package:verbose_ai/shared/widgets/action_button.dart';
 import 'package:verbose_ai/shared/widgets/gradient_container.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:google_sign_in/google_sign_in.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -16,6 +18,8 @@ class _LoginScreenState extends State<LoginScreen> {
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
   bool _isLoading = false;
+  final FirebaseAuth _auth = FirebaseAuth.instance;
+  final GoogleSignIn _googleSignIn = GoogleSignIn();
 
   @override
   void dispose() {
@@ -24,16 +28,35 @@ class _LoginScreenState extends State<LoginScreen> {
     super.dispose();
   }
 
-  Future<void> _login() async {
-    if (_formKey.currentState!.validate()) {
-      setState(() {
-        _isLoading = true;
-      });
+  Future<void> _signInWithGoogle() async {
+    setState(() {
+      _isLoading = true;
+    });
 
-      // Simulate login delay
-      await Future.delayed(const Duration(seconds: 1));
+    try {
+      // Trigger the Google Sign-In flow
+      final GoogleSignInAccount? googleUser = await _googleSignIn.signIn();
 
-      // This would be replaced with actual authentication logic
+      if (googleUser == null) {
+        // User canceled the sign-in flow
+        setState(() {
+          _isLoading = false;
+        });
+        return;
+      }
+
+      // Obtain the auth details from the Google Sign-In
+      final GoogleSignInAuthentication googleAuth = await googleUser.authentication;
+
+      // Create a new credential for Firebase
+      final credential = GoogleAuthProvider.credential(
+        accessToken: googleAuth.accessToken,
+        idToken: googleAuth.idToken,
+      );
+
+      // Sign in with the credential
+      final UserCredential userCredential = await _auth.signInWithCredential(credential);
+
       if (mounted) {
         setState(() {
           _isLoading = false;
@@ -41,6 +64,49 @@ class _LoginScreenState extends State<LoginScreen> {
 
         // Navigate to home after successful login
         Navigator.pushReplacementNamed(context, AppRoutes.home);
+      }
+    } catch (e) {
+      setState(() {
+        _isLoading = false;
+      });
+
+      // Show error message
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Sign-in failed: ${e.toString()}')),
+      );
+    }
+  }
+
+  Future<void> _login() async {
+    if (_formKey.currentState!.validate()) {
+      setState(() {
+        _isLoading = true;
+      });
+
+      try {
+        // Sign in with email and password
+        await _auth.signInWithEmailAndPassword(
+          email: _emailController.text.trim(),
+          password: _passwordController.text.trim(),
+        );
+
+        if (mounted) {
+          setState(() {
+            _isLoading = false;
+          });
+
+          // Navigate to home after successful login
+          Navigator.pushReplacementNamed(context, AppRoutes.home);
+        }
+      } catch (e) {
+        setState(() {
+          _isLoading = false;
+        });
+
+        // Show error message
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Login failed: ${e.toString()}')),
+        );
       }
     }
   }
@@ -136,6 +202,37 @@ class _LoginScreenState extends State<LoginScreen> {
                                 onPressed: _login,
                                 isGradient: true,
                                 isLoading: _isLoading,
+                              ),
+                            ),
+                            const SizedBox(height: 16),
+                            const Row(
+                              children: [
+                                Expanded(child: Divider(color: Colors.grey)),
+                                Padding(
+                                  padding: EdgeInsets.symmetric(horizontal: 16),
+                                  child: Text('OR', style: TextStyle(color: Colors.grey)),
+                                ),
+                                Expanded(child: Divider(color: Colors.grey)),
+                              ],
+                            ),
+                            const SizedBox(height: 16),
+                            SizedBox(
+                              width: double.infinity,
+                              child: ElevatedButton.icon(
+                                icon: Image.asset(
+                                  'assets/images/google_logo.png',
+                                  height: 24,
+                                ),
+                                label: const Text('Sign in with Google'),
+                                onPressed: _signInWithGoogle,
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: Colors.white,
+                                  foregroundColor: Colors.black87,
+                                  padding: const EdgeInsets.symmetric(vertical: 12),
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(8),
+                                  ),
+                                ),
                               ),
                             ),
                           ],
