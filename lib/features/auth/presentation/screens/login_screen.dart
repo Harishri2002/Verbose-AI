@@ -220,7 +220,7 @@ class _LoginScreenState extends State<LoginScreen> {
                               width: double.infinity,
                               child: ElevatedButton.icon(
                                 icon: Image.asset(
-                                  'assets/images/google_logo.png',
+                                  'assets/google_logo.png',
                                   height: 24,
                                 ),
                                 label: const Text('Sign in with Google'),
