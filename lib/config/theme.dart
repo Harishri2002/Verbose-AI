@@ -39,7 +39,7 @@ class AppTheme {
           fontWeight: FontWeight.bold,
         ),
       ),
-      cardTheme: const CardTheme(
+      cardTheme: const CardThemeData(
         color: cardBackground,
         elevation: 4,
         margin: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
