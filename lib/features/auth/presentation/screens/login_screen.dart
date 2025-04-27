@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:verbose_ai/config/routes.dart';
 import 'package:verbose_ai/config/theme.dart';
 import 'package:verbose_ai/shared/widgets/action_button.dart';
@@ -19,7 +20,9 @@ class _LoginScreenState extends State<LoginScreen> {
   final _passwordController = TextEditingController();
   bool _isLoading = false;
   final FirebaseAuth _auth = FirebaseAuth.instance;
-  final GoogleSignIn _googleSignIn = GoogleSignIn();
+  final GoogleSignIn _googleSignIn = GoogleSignIn(
+    clientId: dotenv.env['CLIENT_ID'],
+  );
 
   @override
   void dispose() {
