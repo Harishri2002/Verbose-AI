@@ -39,6 +39,12 @@ dependencies:
   firebase_core: ^3.13.0
   firebase_auth: ^5.5.2
   google_sign_in: ^6.3.0
+  cloud_firestore: ^5.6.6
+  intl: ^0.20.2
+  cached_network_image: ^3.4.1
+  flutter_animate: ^4.5.2
+  lottie: ^3.3.1
+
 
 dev_dependencies:
   flutter_test:
@@ -62,7 +68,7 @@ flutter:
   # the material Icons class.
   uses-material-design: true
   assets:
-#    - assets/.env
+     - assets/animations/robot_typing.json
      - assets/google_logo.png
 
   # To add assets to your application, add an assets section, like this:
