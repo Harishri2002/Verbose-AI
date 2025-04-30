@@ -253,7 +253,7 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
                                   fontWeight: FontWeight.bold,
                                   color: AppTheme.textPrimary,
                                 ),
-                              ).animate()
+                              ).animate()//animation update
                                   .fadeIn(duration: 800.ms)
                                   .slideY(begin: 0.2, end: 0, duration: 800.ms, curve: Curves.easeOutQuad),
                               const SizedBox(height: 16),
