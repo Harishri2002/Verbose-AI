@@ -13,7 +13,5 @@
       "src": "/(.*)",
       "dest": "/build/web/index.html"
     }
-  ],
-  "cleanUrls": true,
-  "trailingSlash": false
+  ]
 }
