@@ -2,11 +2,17 @@
   "builds": [
     {
       "src": "build/web/**",
-      "use": "@vercel/static"
+      "use": "@vercel/static",
+      "config": {
+        "distDir": "build/web"
+      }
     }
   ],
-  "rewrites": [
-    { "source": "/(.*)", "destination": "/index.html" }
+  "routes": [
+    {
+      "src": "/(.*)",
+      "dest": "/build/web/index.html"
+    }
   ],
   "cleanUrls": true,
   "trailingSlash": false
