@@ -65,6 +65,14 @@ class _LoginScreenState extends State<LoginScreen> {
           _isLoading = false;
         });
 
+        // Show success message
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Welcome, ${userCredential.user?.displayName ?? 'User'}!'),
+            backgroundColor: Colors.green,
+          ),
+        );
+
         // Navigate to home after successful login
         Navigator.pushReplacementNamed(context, AppRoutes.home);
       }
@@ -73,9 +81,34 @@ class _LoginScreenState extends State<LoginScreen> {
         _isLoading = false;
       });
 
+      // Handle different types of errors
+      String errorMessage = 'Google sign-in failed';
+
+      if (e is FirebaseAuthException) {
+        switch (e.code) {
+          case 'account-exists-with-different-credential':
+            errorMessage = 'An account already exists with a different sign-in method.';
+            break;
+          case 'invalid-credential':
+            errorMessage = 'Invalid credentials provided.';
+            break;
+          case 'operation-not-allowed':
+            errorMessage = 'Google sign-in is not enabled.';
+            break;
+          case 'user-disabled':
+            errorMessage = 'This user account has been disabled.';
+            break;
+          default:
+            errorMessage = e.message ?? 'Google sign-in failed';
+        }
+      }
+
       // Show error message
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Sign-in failed: ${e.toString()}')),
+        SnackBar(
+          content: Text(errorMessage),
+          backgroundColor: Colors.red,
+        ),
       );
     }
   }
@@ -88,7 +121,7 @@ class _LoginScreenState extends State<LoginScreen> {
 
       try {
         // Sign in with email and password
-        await _auth.signInWithEmailAndPassword(
+        UserCredential userCredential = await _auth.signInWithEmailAndPassword(
           email: _emailController.text.trim(),
           password: _passwordController.text.trim(),
         );
@@ -98,6 +131,14 @@ class _LoginScreenState extends State<LoginScreen> {
             _isLoading = false;
           });
 
+          // Show success message
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('Welcome back, ${userCredential.user?.displayName ?? 'User'}!'),
+              backgroundColor: Colors.green,
+            ),
+          );
+
           // Navigate to home after successful login
           Navigator.pushReplacementNamed(context, AppRoutes.home);
         }
@@ -106,11 +147,91 @@ class _LoginScreenState extends State<LoginScreen> {
           _isLoading = false;
         });
 
+        // Handle different types of errors
+        String errorMessage = 'Login failed';
+
+        if (e is FirebaseAuthException) {
+          switch (e.code) {
+            case 'user-not-found':
+              errorMessage = 'No account found for this email. Please sign up first.';
+              break;
+            case 'wrong-password':
+              errorMessage = 'Incorrect password. Please try again.';
+              break;
+            case 'invalid-email':
+              errorMessage = 'The email address is not valid.';
+              break;
+            case 'user-disabled':
+              errorMessage = 'This user account has been disabled.';
+              break;
+            case 'invalid-credential':
+              errorMessage = 'Invalid email or password. Please check your credentials.';
+              break;
+            case 'too-many-requests':
+              errorMessage = 'Too many failed attempts. Please try again later.';
+              break;
+            default:
+              errorMessage = e.message ?? 'Login failed';
+          }
+        }
+
         // Show error message
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Login failed: ${e.toString()}')),
+          SnackBar(
+            content: Text(errorMessage),
+            backgroundColor: Colors.red,
+          ),
         );
       }
+    }
+  }
+
+  Future<void> _resetPassword() async {
+    final email = _emailController.text.trim();
+
+    if (email.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Please enter your email address first'),
+          backgroundColor: Colors.orange,
+        ),
+      );
+      return;
+    }
+
+    try {
+      await _auth.sendPasswordResetEmail(email: email);
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Password reset email sent! Check your inbox.'),
+            backgroundColor: Colors.green,
+          ),
+        );
+      }
+    } catch (e) {
+      String errorMessage = 'Failed to send reset email';
+
+      if (e is FirebaseAuthException) {
+        switch (e.code) {
+          case 'user-not-found':
+            errorMessage = 'No account found for this email address.';
+            break;
+          case 'invalid-email':
+            errorMessage = 'The email address is not valid.';
+            break;
+          default:
+            errorMessage = e.message ?? 'Failed to send reset email';
+        }
+      }
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(errorMessage),
+          backgroundColor: Colors.red,
+        ),
+      );
     }
   }
 
@@ -171,7 +292,8 @@ class _LoginScreenState extends State<LoginScreen> {
                                 if (value == null || value.isEmpty) {
                                   return 'Please enter your email';
                                 }
-                                if (!value.contains('@')) {
+                                final emailRegex = RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$');
+                                if (!emailRegex.hasMatch(value.trim())) {
                                   return 'Please enter a valid email';
                                 }
                                 return null;
@@ -197,7 +319,21 @@ class _LoginScreenState extends State<LoginScreen> {
                                 return null;
                               },
                             ),
-                            const SizedBox(height: 24),
+                            const SizedBox(height: 8),
+                            Align(
+                              alignment: Alignment.centerRight,
+                              child: TextButton(
+                                onPressed: _resetPassword,
+                                child: const Text(
+                                  'Forgot Password?',
+                                  style: TextStyle(
+                                    color: AppTheme.primaryColor,
+                                    fontSize: 14,
+                                  ),
+                                ),
+                              ),
+                            ),
+                            const SizedBox(height: 16),
                             SizedBox(
                               width: double.infinity,
                               child: ActionButton(
@@ -227,7 +363,7 @@ class _LoginScreenState extends State<LoginScreen> {
                                   height: 24,
                                 ),
                                 label: const Text('Sign in with Google'),
-                                onPressed: _signInWithGoogle,
+                                onPressed: _isLoading ? null : _signInWithGoogle,
                                 style: ElevatedButton.styleFrom(
                                   backgroundColor: Colors.white,
                                   foregroundColor: Colors.black87,

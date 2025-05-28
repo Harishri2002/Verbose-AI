@@ -3,6 +3,7 @@ import 'package:verbose_ai/config/routes.dart';
 import 'package:verbose_ai/config/theme.dart';
 import 'package:verbose_ai/shared/widgets/action_button.dart';
 import 'package:verbose_ai/shared/widgets/gradient_container.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
 class SignupScreen extends StatefulWidget {
   const SignupScreen({super.key});
@@ -18,6 +19,7 @@ class _SignupScreenState extends State<SignupScreen> {
   final _passwordController = TextEditingController();
   final _confirmPasswordController = TextEditingController();
   bool _isLoading = false;
+  final FirebaseAuth _auth = FirebaseAuth.instance;
 
   @override
   void dispose() {
@@ -34,17 +36,66 @@ class _SignupScreenState extends State<SignupScreen> {
         _isLoading = true;
       });
 
-      // Simulate signup delay
-      await Future.delayed(const Duration(seconds: 1));
+      try {
+        // Create user with email and password
+        UserCredential userCredential = await _auth.createUserWithEmailAndPassword(
+          email: _emailController.text.trim(),
+          password: _passwordController.text.trim(),
+        );
 
-      // This would be replaced with actual signup logic
-      if (mounted) {
+        // Update the user's display name
+        await userCredential.user?.updateDisplayName(_nameController.text.trim());
+
+        if (mounted) {
+          setState(() {
+            _isLoading = false;
+          });
+
+          // Show success message
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Account created successfully! Please login.'),
+              backgroundColor: Colors.green,
+            ),
+          );
+
+          // Navigate to login page after successful signup
+          Navigator.pushReplacementNamed(context, AppRoutes.login);
+        }
+      } catch (e) {
         setState(() {
           _isLoading = false;
         });
 
-        // Navigate to home after successful signup
-        Navigator.pushReplacementNamed(context, AppRoutes.home);
+        // Handle different types of errors
+        String errorMessage = 'Registration failed';
+
+        if (e is FirebaseAuthException) {
+          switch (e.code) {
+            case 'weak-password':
+              errorMessage = 'The password is too weak.';
+              break;
+            case 'email-already-in-use':
+              errorMessage = 'An account already exists for this email.';
+              break;
+            case 'invalid-email':
+              errorMessage = 'The email address is not valid.';
+              break;
+            case 'operation-not-allowed':
+              errorMessage = 'Email/password accounts are not enabled.';
+              break;
+            default:
+              errorMessage = e.message ?? 'Registration failed';
+          }
+        }
+
+        // Show error message
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(errorMessage),
+            backgroundColor: Colors.red,
+          ),
+        );
       }
     }
   }
@@ -105,6 +156,9 @@ class _SignupScreenState extends State<SignupScreen> {
                                 if (value == null || value.isEmpty) {
                                   return 'Please enter your name';
                                 }
+                                if (value.trim().length < 2) {
+                                  return 'Name must be at least 2 characters';
+                                }
                                 return null;
                               },
                             ),
@@ -122,7 +176,9 @@ class _SignupScreenState extends State<SignupScreen> {
                                 if (value == null || value.isEmpty) {
                                   return 'Please enter your email';
                                 }
-                                if (!value.contains('@')) {
+                                // More comprehensive email validation
+                                final emailRegex = RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$');
+                                if (!emailRegex.hasMatch(value.trim())) {
                                   return 'Please enter a valid email';
                                 }
                                 return null;
