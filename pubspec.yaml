@@ -70,6 +70,7 @@ flutter:
   assets:
      - assets/animations/robot_typing.json
      - assets/google_logo.png
+     - .env
 
   # To add assets to your application, add an assets section, like this:
   # assets:
